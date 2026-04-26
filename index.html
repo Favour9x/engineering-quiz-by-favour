@@ -2,463 +2,708 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EngiMind // Engineering & Science Quiz</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZERO WAVE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0a0e14;
-            --card-bg: #161b22;
-            --accent-blue: #00f2ff;
-            --accent-green: #39ff14;
-            --accent-red: #ff3131;
-            --text-main: #e6edf3;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --cyan: #00ffff;
+            --muted: #666;
+            --red: #ff4444;
+            --green: #44ff44;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Bebas Neue', cursive;
+            user-select: none;
+            touch-action: none;
         }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Space Mono', monospace;
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            z-index: 10;
+        }
+        /* Screens */
+        .screen {
+            position: absolute;
+            inset: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            background: rgba(0,0,0,0.85);
+            pointer-events: auto;
+            z-index: 20;
         }
+        #menu-screen { background: #000; }
+        .hidden { display: none !important; }
 
-        /* Background Grid Effect */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-            z-index: -1;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 600px;
-            padding: 20px;
-            z-index: 1;
-        }
-
-        /* Header & Stats */
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
+        /* Typography */
         h1 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 3.5rem;
-            letter-spacing: 4px;
-            color: var(--accent-blue);
-            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-            margin-bottom: 10px;
+            font-size: 100px;
+            margin: 0;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+            letter-spacing: 5px;
         }
+        .tagline { color: var(--muted); font-size: 24px; margin-bottom: 20px; }
+        .high-score-text { color: white; font-size: 28px; margin-bottom: 40px; }
+        
+        /* Buttons */
+        .btn {
+            background: transparent;
+            border: 2px solid var(--cyan);
+            color: var(--cyan);
+            padding: 15px 50px;
+            font-size: 30px;
+            font-family: 'Bebas Neue';
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 10px rgba(0,255,255,0.2);
+        }
+        .btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 30px var(--cyan); }
 
-        .stats-bar {
+        /* HUD */
+        #hud {
+            padding: 20px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            align-items: flex-start;
+            pointer-events: none;
         }
-
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-            margin-bottom: 2rem;
-            overflow: hidden;
+        .stat-box { font-size: 24px; text-shadow: 0 0 5px #000; }
+        #health-container {
+            width: 200px; height: 15px;
+            background: #222;
+            border: 1px solid white;
+            margin-top: 5px;
         }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--accent-blue);
-            width: 0%;
-            transition: width 0.5s ease;
-            box-shadow: 0 0 10px var(--accent-blue);
-        }
-
-        /* Quiz Card */
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-            transition: var(--transition);
-        }
-
-        .question-text {
-            font-size: 1.2rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            font-weight: 700;
-        }
-
-        .options-grid {
-            display: grid;
-            gap: 12px;
-        }
-
-        .option-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
-            color: var(--text-main);
-            font-family: 'Space Mono', monospace;
-            text-align: left;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.95rem;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            background: rgba(0, 242, 255, 0.1);
-            border-color: var(--accent-blue);
-            transform: translateX(5px);
-        }
-
-        .option-btn:disabled {
-            cursor: default;
-        }
-
-        .option-btn.correct {
-            background: rgba(57, 255, 20, 0.15) !important;
-            border-color: var(--accent-green) !important;
-            color: var(--accent-green);
-        }
-
-        .option-btn.wrong {
-            background: rgba(255, 49, 49, 0.15) !important;
-            border-color: var(--accent-red) !important;
-            color: var(--accent-red);
-        }
-
-        /* Explanation Section */
-        .explanation {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-left: 3px solid var(--accent-blue);
-            background: rgba(0, 242, 255, 0.05);
-            font-size: 0.85rem;
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .next-btn {
-            margin-top: 1.5rem;
-            width: 100%;
-            background: var(--accent-blue);
-            color: var(--bg-color);
-            border: none;
-            padding: 12px;
-            font-family: 'Bebas Neue', cursive;
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-            cursor: pointer;
-            border-radius: 6px;
-            display: none;
-            transition: var(--transition);
-        }
-
-        .next-btn:hover {
-            filter: brightness(1.2);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
-        }
-
-        /* Results Screen */
-        #results-screen {
-            display: none;
+        #health-bar { width: 100%; height: 100%; background: var(--cyan); transition: 0.2s; }
+        #combo-display {
+            position: absolute;
+            top: 20%; width: 100%;
             text-align: center;
-        }
-
-        .result-stat {
-            font-size: 1.2rem;
-            margin: 10px 0;
-        }
-
-        .final-score {
-            font-size: 4rem;
-            font-family: 'Bebas Neue';
-            color: var(--accent-blue);
-            margin: 1rem 0;
-        }
-
-        /* Footer */
-        footer {
-            margin-top: 3rem;
-            padding: 20px;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-out {
+            font-size: 80px;
+            color: #fff;
             opacity: 0;
-            transform: scale(0.95);
+            transition: 0.2s;
+            transform: scale(0.5);
         }
+        #combo-display.active { opacity: 0.8; transform: scale(1.1); }
 
-        @media (max-width: 480px) {
-            h1 { font-size: 2.5rem; }
-            .card { padding: 1.5rem; }
-            .question-text { font-size: 1rem; }
+        /* Announcements */
+        #announcement {
+            position: absolute;
+            top: 40%; width: 100%;
+            text-align: center;
+            font-size: 60px;
+            color: white;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .boss-warning { color: var(--red) !important; text-shadow: 0 0 20px var(--red); }
+
+        /* Upgrades */
+        #upgrade-screen h2 { color: var(--cyan); font-size: 50px; }
+        .upgrade-container { display: flex; gap: 20px; margin-top: 30px; }
+        .upgrade-card {
+            width: 180px; padding: 20px;
+            border: 2px solid #444;
+            background: #111;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .upgrade-card:hover { border-color: var(--cyan); transform: translateY(-5px); }
+        .upgrade-card h3 { color: var(--cyan); margin: 0 0 10px 0; }
+        .upgrade-card p { font-size: 16px; color: #ccc; }
+
+        footer { position: absolute; bottom: 20px; color: var(--muted); font-size: 14px; }
+        
+        canvas { display: block; }
+        
+        #joystick-zone {
+            position: absolute;
+            bottom: 40px; left: 40px;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: none; /* Only via mobile check */
+            touch-action: none;
+        }
+        #joystick-knob {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 60px; height: 60px;
+            background: var(--cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>EngiMind</h1>
-            <div class="stats-bar">
-                <span id="question-counter">Question: 1/10</span>
-                <span id="live-score">Score: 0</span>
+    <div id="ui-layer">
+        <div id="hud">
+            <div>
+                <div class="stat-box" id="level-text">WAVE: 1</div>
+                <div id="health-container"><div id="health-bar"></div></div>
             </div>
-            <div class="progress-container">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
-
-        <!-- Quiz Screen -->
-        <div id="quiz-screen">
-            <div class="card" id="quiz-card">
-                <div id="question-container">
-                    <p class="question-text" id="question-text">Loading sensor data...</p>
-                    <div class="options-grid" id="options-grid">
-                        <!-- Options injected by JS -->
-                    </div>
-                </div>
-                <div class="explanation" id="explanation">
-                    <strong>SYSTEM LOG:</strong> <span id="explanation-text"></span>
-                </div>
-                <button class="next-btn" id="next-btn" onclick="handleNext()">Next Module</button>
+            <div style="text-align: right;">
+                <div class="stat-box" id="score-text">SCORE: 0</div>
+                <div class="stat-box" id="high-score-text-hud" style="font-size: 16px; color: var(--muted);">BEST: 0</div>
             </div>
         </div>
-
-        <!-- Results Screen -->
-        <div id="results-screen">
-            <div class="card">
-                <h2 style="font-family: 'Bebas Neue'; font-size: 2.5rem; color: var(--accent-blue);">Mission Complete</h2>
-                <div class="final-score" id="final-score">0%</div>
-                <div class="result-stat" id="correct-count" style="color: var(--accent-green);"></div>
-                <div class="result-stat" id="wrong-count" style="color: var(--accent-red);"></div>
-                <button class="next-btn" style="display: block;" onclick="restartQuiz()">Restart System</button>
-            </div>
-        </div>
+        <div id="combo-display">3X COMBO</div>
+        <div id="announcement">WAVE 1</div>
     </div>
 
-    <footer>Built by Chidrexx</footer>
+    <!-- Screens -->
+    <div id="menu-screen" class="screen">
+        <h1>ZERO WAVE</h1>
+        <div class="tagline">How long can you survive?</div>
+        <div class="high-score-text" id="high-score-display">HIGH SCORE: 0</div>
+        <button class="btn" onclick="startGame()">START SURVIVAL</button>
+    </div>
 
-    <script>
-        const quizData = [
-            {
-                question: "According to the Second Law of Thermodynamics, what happens to the total entropy of an isolated system over time?",
-                options: ["It decreases", "It remains constant", "It increases", "It fluctuates periodically"],
-                correct: 2,
-                info: "Entropy is a measure of disorder. The Second Law states that in any cyclic process, the entropy will either increase or remain the same."
-            },
-            {
-                question: "What is the primary function of a capacitor in an electrical circuit?",
-                options: ["To block all current", "To store electrical energy in a field", "To increase voltage indefinitely", "To convert AC to DC"],
-                correct: 1,
-                info: "Capacitors store energy in an electric field between two conducting plates, commonly used for filtering and timing."
-            },
-            {
-                question: "Which material property describes a material's resistance to localized plastic deformation (e.g., a scratch)?",
-                options: ["Toughness", "Ductility", "Hardness", "Elasticity"],
-                correct: 2,
-                info: "Hardness is the measure of resistance to surface indentation or abrasion. Diamond is the hardest natural material."
-            },
-            {
-                question: "In classical mechanics, what is Newton's Second Law of Motion?",
-                options: ["F = G(m1m2/r²)", "E = mc²", "F = ma", "PV = nRT"],
-                correct: 2,
-                info: "Force equals mass times acceleration. This defines the relationship between an object's mass and the force needed to accelerate it."
-            },
-            {
-                question: "What is the atomic number of Carbon, the backbone of organic chemistry?",
-                options: ["12", "6", "14", "8"],
-                correct: 1,
-                info: "Carbon has 6 protons in its nucleus. While C-12 is its most common isotope, the atomic number is always 6."
-            },
-            {
-                question: "Which of these describes Hooke's Law within the elastic limit?",
-                options: ["Stress is proportional to Strain", "Pressure equals Force/Area", "Entropy always increases", "Velocity is constant"],
-                correct: 0,
-                info: "Hooke's Law (F=kx) states that the strain of a material is proportional to the applied stress within the elastic limit."
-            },
-            {
-                question: "What is 'Absolute Zero' in the Celsius scale?",
-                options: ["0°C", "-100°C", "-273.15°C", "-459.67°C"],
-                correct: 2,
-                info: "Absolute zero (0 Kelvin) is the lowest possible temperature where thermal motion ceases, equivalent to -273.15°C."
-            },
-            {
-                question: "A fluid with high viscosity will likely:",
-                options: ["Flow very quickly", "Resist flow and move slowly", "Boil at room temperature", "Conduct electricity easily"],
-                correct: 1,
-                info: "Viscosity is a measure of a fluid's resistance to deformation. Honey has high viscosity compared to water."
-            },
-            {
-                question: "What is the standard unit of Power?",
-                options: ["Joule", "Newton", "Watt", "Pascal"],
-                correct: 2,
-                info: "One Watt (W) is defined as one Joule of work done per second."
-            },
-            {
-                question: "Which crystal structure is known for having the highest packing factor (0.74)?",
-                options: ["Simple Cubic", "Body-Centered Cubic (BCC)", "Face-Centered Cubic (FCC)", "Diamond Cubic"],
-                correct: 2,
-                info: "FCC and HCP structures have the highest Atomic Packing Factor of 0.74, representing the most efficient way to pack spheres."
+    <div id="upgrade-screen" class="screen hidden">
+        <h2>SELECT AN UPGRADE</h2>
+        <div class="upgrade-container" id="upgrade-options"></div>
+    </div>
+
+    <div id="game-over-screen" class="screen hidden">
+        <h1 style="color: var(--red); text-shadow: 0 0 20px var(--red);">GAME OVER</h1>
+        <div class="stat-box" id="final-score">SCORE: 0</div>
+        <div class="stat-box" id="final-level" style="margin-bottom: 30px;">WAVE REACHED: 1</div>
+        <button class="btn" onclick="location.reload()">RESTART</button>
+        <footer>Built by Chidrexx</footer>
+    </div>
+
+    <div id="joystick-zone"><div id="joystick-knob"></div></div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+/** AUDIO SYSTEM **/
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    if (type === 'shoot') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(); osc.stop(now + 0.1);
+    } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, now);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(); osc.stop(now + 0.2);
+    } else if (type === 'death') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(20, now + 0.3);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(); osc.stop(now + 0.3);
+    } else if (type === 'levelup') {
+        osc.type = 'triangle';
+        [200, 300, 400].forEach((f, i) => {
+            osc.frequency.setValueAtTime(f, now + i * 0.1);
+        });
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+        osc.start(); osc.stop(now + 0.4);
+    } else if (type === 'boss') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(40, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 1);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.4, now + 0.5);
+        gain.gain.linearRampToValueAtTime(0, now + 1);
+        osc.start(); osc.stop(now + 1);
+    }
+}
+
+/** GAME ENGINE **/
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+
+const state = {
+    running: false,
+    level: 1,
+    score: 0,
+    highScore: localStorage.getItem('zw_highscore') || 0,
+    player: null,
+    enemies: [],
+    bullets: [],
+    particles: [],
+    keys: {},
+    lastShot: 0,
+    shake: 0,
+    combo: 0,
+    lastKillTime: 0,
+    waveActive: false,
+    zombiesToSpawn: 0,
+    zombiesSpawned: 0,
+    zombiesKilled: 0,
+    spawnTimer: 0,
+    isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+};
+
+const UPGRADES = [
+    { id: 'fireRate', name: 'Rapid Fire', desc: 'Shoot 30% faster', effect: () => state.player.fireRate *= 0.7 },
+    { id: 'pierce', name: 'Piercing', desc: 'Bullets go through 1 enemy', effect: () => state.player.pierce += 1 },
+    { id: 'double', name: 'Double Shot', desc: 'Shoot 2 bullets at once', effect: () => state.player.doubleShot = true },
+    { id: 'speed', name: 'Speed Boost', desc: 'Move 20% faster', effect: () => state.player.speed *= 1.2 },
+    { id: 'shield', name: 'Shield', desc: 'Absorb one hit', effect: () => state.player.shield = true },
+    { id: 'explosive', name: 'Explosive', desc: 'Small blast on impact', effect: () => state.player.explosive = true }
+];
+
+class Entity {
+    constructor(x, y, radius, color) {
+        this.x = x; this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.flash = 0;
+    }
+    draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.flash > 0 ? '#fff' : this.color;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+        ctx.restore();
+        if (this.flash > 0) this.flash--;
+    }
+}
+
+class Player extends Entity {
+    constructor() {
+        super(window.innerWidth/2, window.innerHeight/2, 15, '#00ffff');
+        this.speed = 4;
+        this.hp = 100;
+        this.maxHp = 100;
+        this.fireRate = 400; // ms
+        this.pierce = 0;
+        this.doubleShot = false;
+        this.explosive = false;
+        this.shield = false;
+        this.angle = 0;
+    }
+    update() {
+        let mx = 0, my = 0;
+        if (state.keys['KeyW'] || state.keys['ArrowUp']) my -= 1;
+        if (state.keys['KeyS'] || state.keys['ArrowDown']) my += 1;
+        if (state.keys['KeyA'] || state.keys['ArrowLeft']) mx -= 1;
+        if (state.keys['KeyD'] || state.keys['ArrowRight']) mx += 1;
+        
+        // Mobile joystick
+        if (state.isMobile && joystick.active) {
+            mx = joystick.dx;
+            my = joystick.dy;
+        }
+
+        if (mx !== 0 || my !== 0) {
+            const mag = Math.sqrt(mx*mx + my*my);
+            this.x += (mx/mag) * this.speed;
+            this.y += (my/mag) * this.speed;
+        }
+
+        // Boundary
+        this.x = Math.max(this.radius, Math.min(width - this.radius, this.x));
+        this.y = Math.max(this.radius, Math.min(height - this.radius, this.y));
+
+        // Auto aim
+        if (state.enemies.length > 0) {
+            let nearest = null;
+            let minDist = Infinity;
+            state.enemies.forEach(e => {
+                const d = Math.hypot(e.x - this.x, e.y - this.y);
+                if (d < minDist) { minDist = d; nearest = e; }
+            });
+            if (nearest) {
+                this.angle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+                if (Date.now() - state.lastShot > this.fireRate) {
+                    this.shoot();
+                }
             }
-        ];
-
-        let currentQuestion = 0;
-        let score = 0;
-        let correctCount = 0;
-        let wrongCount = 0;
-        let answered = false;
-
-        const questionText = document.getElementById('question-text');
-        const optionsGrid = document.getElementById('options-grid');
-        const explanation = document.getElementById('explanation');
-        const explanationText = document.getElementById('explanation-text');
-        const nextBtn = document.getElementById('next-btn');
-        const progressFill = document.getElementById('progress-fill');
-        const questionCounter = document.getElementById('question-counter');
-        const liveScoreDisplay = document.getElementById('live-score');
-        const quizCard = document.getElementById('quiz-card');
-
-        function initQuiz() {
-            showQuestion();
         }
-
-        function showQuestion() {
-            const q = quizData[currentQuestion];
-            answered = false;
-            
-            // Update UI
-            questionCounter.innerText = `Question: ${currentQuestion + 1}/${quizData.length}`;
-            progressFill.style.width = `${(currentQuestion / quizData.length) * 100}%`;
-            
-            // Animation
-            quizCard.style.opacity = '0';
-            setTimeout(() => {
-                questionText.innerText = q.question;
-                optionsGrid.innerHTML = '';
-                explanation.style.display = 'none';
-                nextBtn.style.display = 'none';
-
-                q.options.forEach((opt, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'option-btn';
-                    btn.innerText = opt;
-                    btn.onclick = () => selectOption(index);
-                    optionsGrid.appendChild(btn);
-                });
-                
-                quizCard.style.opacity = '1';
-            }, 300);
+    }
+    draw() {
+        super.draw();
+        // Direction indicator
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(25, 0); ctx.stroke();
+        if (this.shield) {
+            ctx.beginPath(); ctx.arc(0, 0, this.radius + 8, 0, Math.PI*2);
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)'; ctx.stroke();
         }
+        ctx.restore();
+    }
+    shoot() {
+        const createBullet = (angleOffset = 0) => {
+            state.bullets.push(new Bullet(this.x, this.y, this.angle + angleOffset, this.pierce, this.explosive));
+        };
+        if (this.doubleShot) {
+            createBullet(-0.15); createBullet(0.15);
+        } else {
+            createBullet();
+        }
+        state.lastShot = Date.now();
+        playSound('shoot');
+    }
+}
 
-        function selectOption(index) {
-            if (answered) return;
-            answered = true;
+class Enemy extends Entity {
+    constructor(x, y, isBoss = false) {
+        const radius = isBoss ? 40 : 12 + Math.random() * 8;
+        const color = isBoss ? '#ff4444' : '#44ff44';
+        super(x, y, radius, color);
+        this.isBoss = isBoss;
+        this.hp = (isBoss ? 20 : 1) * (1 + state.level * 0.3);
+        this.speed = (isBoss ? 1.5 : 1.5 + Math.random()) * (1 + state.level * 0.05);
+    }
+    update() {
+        const angle = Math.atan2(state.player.y - this.y, state.player.x - this.x);
+        this.x += Math.cos(angle) * this.speed;
+        this.y += Math.sin(angle) * this.speed;
 
-            const q = quizData[currentQuestion];
-            const buttons = optionsGrid.getElementsByClassName('option-btn');
-            
-            if (index === q.correct) {
-                buttons[index].classList.add('correct');
-                score += 10;
-                correctCount++;
+        // Collision with player
+        const dist = Math.hypot(state.player.x - this.x, state.player.y - this.y);
+        if (dist < state.player.radius + this.radius) {
+            if (state.player.shield) {
+                state.player.shield = false;
+                this.hp = 0; // Destroy zombie on shield pop
             } else {
-                buttons[index].classList.add('wrong');
-                buttons[q.correct].classList.add('correct');
-                wrongCount++;
-            }
-
-            // Lock buttons
-            Array.from(buttons).forEach(btn => btn.disabled = true);
-
-            // Show explanation
-            explanationText.innerText = q.info;
-            explanation.style.display = 'block';
-            nextBtn.style.display = 'block';
-            
-            // Update score
-            liveScoreDisplay.innerText = `Score: ${score}`;
-        }
-
-        function handleNext() {
-            currentQuestion++;
-            if (currentQuestion < quizData.length) {
-                showQuestion();
-            } else {
-                showResults();
+                state.player.hp -= this.isBoss ? 2 : 0.5;
+                state.player.flash = 5;
+                state.shake = 10;
+                if (state.player.hp <= 0) gameOver();
             }
         }
+    }
+}
 
-        function showResults() {
-            progressFill.style.width = '100%';
-            document.getElementById('quiz-screen').style.display = 'none';
-            const resultsScreen = document.getElementById('results-screen');
-            resultsScreen.style.display = 'block';
-            resultsScreen.style.animation = 'fadeIn 0.6s ease';
+class Bullet {
+    constructor(x, y, angle, pierce, explosive) {
+        this.x = x; this.y = y;
+        this.angle = angle;
+        this.speed = 12;
+        this.pierce = pierce;
+        this.explosive = explosive;
+        this.active = true;
+        this.history = [];
+    }
+    update() {
+        this.history.push({x: this.x, y: this.y});
+        if (this.history.length > 5) this.history.shift();
+        
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
 
-            document.getElementById('final-score').innerText = `${(score / (quizData.length * 10)) * 100}%`;
-            document.getElementById('correct-count').innerText = `Correct Responses: ${correctCount}`;
-            document.getElementById('wrong-count').innerText = `Errors Logged: ${wrongCount}`;
+        if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) this.active = false;
+
+        state.enemies.forEach(e => {
+            if (!this.active) return;
+            const d = Math.hypot(e.x - this.x, e.y - this.y);
+            if (d < e.radius + 5) {
+                e.hp -= 1;
+                e.flash = 3;
+                if (this.explosive) {
+                    createExplosion(this.x, this.y, '#ffff00', 40);
+                    state.enemies.forEach(e2 => {
+                        if (Math.hypot(e2.x - this.x, e2.y - this.y) < 60) e2.hp -= 1;
+                    });
+                }
+                if (this.pierce > 0) {
+                    this.pierce--;
+                } else {
+                    this.active = false;
+                }
+                if (e.hp <= 0) killEnemy(e);
+            }
+        });
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.moveTo(this.x, this.y);
+        if (this.history[0]) ctx.lineTo(this.history[0].x, this.history[0].y);
+        ctx.stroke();
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y;
+        const ang = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        this.vx = Math.cos(ang) * speed;
+        this.vy = Math.sin(ang) * speed;
+        this.life = 1.0;
+        this.color = color;
+    }
+    update() {
+        this.x += this.vx; this.y += this.vy;
+        this.life -= 0.03;
+    }
+    draw() {
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, 3, 3);
+        ctx.globalAlpha = 1;
+    }
+}
+
+/** FUNCTIONS **/
+function initCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+
+function startGame() {
+    document.getElementById('menu-screen').classList.add('hidden');
+    document.getElementById('high-score-text-hud').innerText = `BEST: ${state.highScore}`;
+    state.player = new Player();
+    state.running = true;
+    state.level = 0;
+    state.score = 0;
+    nextLevel();
+    requestAnimationFrame(loop);
+    if (state.isMobile) document.getElementById('joystick-zone').style.display = 'block';
+}
+
+function nextLevel() {
+    state.level++;
+    state.waveActive = true;
+    state.zombiesKilled = 0;
+    state.zombiesSpawned = 0;
+    state.zombiesToSpawn = 5 + (state.level * 3);
+    
+    const isBossLevel = state.level % 5 === 0;
+    const ann = document.getElementById('announcement');
+    ann.innerText = isBossLevel ? `⚠ BOSS INCOMING` : `WAVE ${state.level}`;
+    ann.className = isBossLevel ? 'boss-warning' : '';
+    ann.style.opacity = 1;
+    setTimeout(() => ann.style.opacity = 0, 2000);
+    
+    if (isBossLevel) playSound('boss');
+    else playSound('levelup');
+
+    if (state.level > 1 && (state.level - 1) % 3 === 0) {
+        showUpgradeScreen();
+    }
+}
+
+function showUpgradeScreen() {
+    state.running = false;
+    const container = document.getElementById('upgrade-options');
+    container.innerHTML = '';
+    const shuffled = [...UPGRADES].sort(() => 0.5 - Math.random()).slice(0, 3);
+    
+    shuffled.forEach(upg => {
+        const div = document.createElement('div');
+        div.className = 'upgrade-card';
+        div.innerHTML = `<h3>${upg.name}</h3><p>${upg.desc}</p>`;
+        div.onclick = () => {
+            upg.effect();
+            document.getElementById('upgrade-screen').classList.add('hidden');
+            state.running = true;
+            requestAnimationFrame(loop);
+        };
+        container.appendChild(div);
+    });
+    document.getElementById('upgrade-screen').classList.remove('hidden');
+}
+
+function killEnemy(e) {
+    const idx = state.enemies.indexOf(e);
+    if (idx > -1) {
+        state.enemies.splice(idx, 1);
+        state.zombiesKilled++;
+        state.score += e.isBoss ? 500 : 100;
+        createExplosion(e.x, e.y, e.color, 15);
+        playSound('death');
+        
+        // Combo
+        const now = Date.now();
+        if (now - state.lastKillTime < 1000) state.combo++;
+        else state.combo = 1;
+        state.lastKillTime = now;
+        
+        if (state.combo >= 3) {
+            const comboEl = document.getElementById('combo-display');
+            comboEl.innerText = `${state.combo}X COMBO`;
+            comboEl.classList.add('active');
+            state.score += state.combo * 10;
+            setTimeout(() => comboEl.classList.remove('active'), 500);
         }
+    }
+}
 
-        function restartQuiz() {
-            currentQuestion = 0;
-            score = 0;
-            correctCount = 0;
-            wrongCount = 0;
-            liveScoreDisplay.innerText = `Score: 0`;
-            document.getElementById('quiz-screen').style.display = 'block';
-            document.getElementById('results-screen').style.display = 'none';
-            showQuestion();
+function createExplosion(x, y, color, count) {
+    for (let i = 0; i < count; i++) state.particles.push(new Particle(x, y, color));
+}
+
+function spawnEnemy() {
+    if (state.zombiesSpawned >= state.zombiesToSpawn) return;
+    
+    let x, y;
+    if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? -50 : width + 50;
+        y = Math.random() * height;
+    } else {
+        x = Math.random() * width;
+        y = Math.random() < 0.5 ? -50 : height + 50;
+    }
+    
+    const isBoss = (state.level % 5 === 0) && (state.zombiesSpawned === state.zombiesToSpawn - 1);
+    state.enemies.push(new Enemy(x, y, isBoss));
+    state.zombiesSpawned++;
+}
+
+function gameOver() {
+    state.running = false;
+    playSound('hit');
+    if (state.score > state.highScore) {
+        localStorage.setItem('zw_highscore', state.score);
+    }
+    document.getElementById('final-score').innerText = `SCORE: ${state.score}`;
+    document.getElementById('final-level').innerText = `WAVE REACHED: ${state.level}`;
+    document.getElementById('game-over-screen').classList.remove('hidden');
+}
+
+/** LOOP **/
+function loop() {
+    if (!state.running) return;
+
+    // Screen Shake Offset
+    let sx = 0, sy = 0;
+    if (state.shake > 0) {
+        sx = (Math.random() - 0.5) * state.shake;
+        sy = (Math.random() - 0.5) * state.shake;
+        state.shake *= 0.9;
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; // Motion blur effect
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.save();
+    ctx.translate(sx, sy);
+
+    // Update & Draw
+    state.player.update();
+    state.player.draw();
+
+    if (state.waveActive) {
+        state.spawnTimer++;
+        if (state.spawnTimer > Math.max(10, 60 - state.level * 2)) {
+            spawnEnemy();
+            state.spawnTimer = 0;
         }
+        if (state.zombiesKilled >= state.zombiesToSpawn) {
+            state.waveActive = false;
+            setTimeout(nextLevel, 1500);
+        }
+    }
 
-        // Start
-        initQuiz();
-    </script>
+    state.bullets.forEach((b, i) => {
+        b.update();
+        b.draw();
+        if (!b.active) state.bullets.splice(i, 1);
+    });
+
+    state.enemies.forEach(e => {
+        e.update();
+        e.draw();
+    });
+
+    state.particles.forEach((p, i) => {
+        p.update();
+        p.draw();
+        if (p.life <= 0) state.particles.splice(i, 1);
+    });
+
+    ctx.restore();
+
+    // Pulse on boss wave
+    if (state.level % 5 === 0) {
+        ctx.strokeStyle = `rgba(255, 0, 0, ${0.1 + Math.sin(Date.now()/200) * 0.05})`;
+        ctx.lineWidth = 20;
+        ctx.strokeRect(0,0,width,height);
+    }
+
+    // HUD Update
+    document.getElementById('score-text').innerText = `SCORE: ${state.score}`;
+    document.getElementById('level-text').innerText = `WAVE: ${state.level}`;
+    document.getElementById('health-bar').style.width = `${(state.player.hp / state.player.maxHp) * 100}%`;
+
+    requestAnimationFrame(loop);
+}
+
+/** INPUTS **/
+window.addEventListener('keydown', e => state.keys[e.code] = true);
+window.addEventListener('keyup', e => state.keys[e.code] = false);
+window.addEventListener('resize', initCanvas);
+
+const joystick = { active: false, x: 0, y: 0, dx: 0, dy: 0 };
+const joyZone = document.getElementById('joystick-zone');
+const joyKnob = document.getElementById('joystick-knob');
+
+joyZone.addEventListener('touchstart', e => {
+    joystick.active = true;
+    const rect = joyZone.getBoundingClientRect();
+    joystick.x = rect.left + rect.width/2;
+    joystick.y = rect.top + rect.height/2;
+});
+joyZone.addEventListener('touchmove', e => {
+    if (!joystick.active) return;
+    const touch = e.touches[0];
+    const rawDx = touch.clientX - joystick.x;
+    const rawDy = touch.clientY - joystick.y;
+    const dist = Math.min(Math.hypot(rawDx, rawDy), 60);
+    const angle = Math.atan2(rawDy, rawDx);
+    
+    joystick.dx = Math.cos(angle) * (dist/60);
+    joystick.dy = Math.sin(angle) * (dist/60);
+    
+    joyKnob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+});
+joyZone.addEventListener('touchend', () => {
+    joystick.active = false;
+    joystick.dx = 0; joystick.dy = 0;
+    joyKnob.style.transform = `translate(-50%, -50%)`;
+});
+
+// Init
+initCanvas();
+document.getElementById('high-score-display').innerText = `HIGH SCORE: ${state.highScore}`;
+</script>
 </body>
 </html>
